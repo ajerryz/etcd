@@ -9,40 +9,51 @@ data-dir:
 # Path to the dedicated wal directory.
 wal-dir:
 
-# Number of committed transactions to trigger a snapshot to disk.
+# 触发快照到磁盘的已提交事务的数量。
 snapshot-count: 10000
 
-# Time (in milliseconds) of a heartbeat interval.
+# 心跳间隔的时间（以毫秒为单位）。
 heartbeat-interval: 100
 
-# Time (in milliseconds) for an election to timeout.
+# 选举超时的时间（以毫秒为单位）。
 election-timeout: 1000
 
-# Raise alarms when backend size exceeds the given quota. 0 means use the
-# default quota.
+# 当后端大小超过给定配额时发出警报。0 表示使用默认配额。
 quota-backend-bytes: 0
 
-# List of comma separated URLs to listen on for peer traffic.
+# 决定 etcd 进程在哪些网络接口上接收其他成员请求。
+# 用于监听对等流量的逗号分隔的 URL 列表。
 listen-peer-urls: http://localhost:2380
 
-# List of comma separated URLs to listen on for client traffic.
+# 决定 etcd 进程在哪些网络接口上接收客户端请求。
+# 用于监听客户端流量的逗号分隔的 URL 列表。
+# 可以多个为了支持 多网卡，多协议、内网隔离等场景
 listen-client-urls: http://localhost:2379
 
-# Maximum number of snapshot files to retain (0 is unlimited).
+# 保留的快照文件的最大数量（0 表示无限制）。
 max-snapshots: 5
 
-# Maximum number of wal files to retain (0 is unlimited).
+# 保留的最大 wal 文件数量（0 表示无限制）。
 max-wals: 5
 
-# Comma-separated white list of origins for CORS (cross-origin resource sharing).
+# 以逗号分隔的 CORS（跨域资源共享）来源白名单。
 cors:
 
 # List of this member's peer URLs to advertise to the rest of the cluster.
 # The URLs needed to be a comma-separated list.
 initial-advertise-peer-urls: http://localhost:2380
 
-# List of this member's client URLs to advertise to the public.
-# The URLs needed to be a comma-separated list.
+# 列出该成员的客户 URL 以向公众公布。URL 需要以逗号分隔的列表。
+# 解决客户端与服务器之间的网络可见性问题。可能需要配置为域名、负载均衡器地址或跨网络的可达地址。
+# 即这里的配置是为了外部访问的地址。例如如果是一个跨网络隔离的etcd集群。
+#
+# 场景	                  listen-client-urls	              advertise-client-urls
+# 单节点本地部署	          http://localhost:2379	              http://localhost:2379
+# 多节点集群（内网）	      http://node1:2379	                  http://node1:2379
+# 跨区域部署（公网访问）	  http://内网IP:2379	                  http://公网IP:2379 或域名
+# 容器化环境（Kubernetes）  http://0.0.0.0:2379	              http://etcd-service:2379（Service）
+# 负载均衡器后端	          http://0.0.0.0:2379	              http://lb.example.com:2379
+#
 advertise-client-urls: http://localhost:2379
 
 # Discovery URL used to bootstrap the cluster.
@@ -57,13 +68,17 @@ discovery-proxy:
 # DNS domain used to bootstrap initial cluster.
 discovery-srv:
 
+# 用于引导的初始集群配置的逗号分隔字符串。
 # Comma separated string of initial cluster configuration for bootstrapping.
 # Example: initial-cluster: "infra0=http://10.0.1.10:2380,infra1=http://10.0.1.11:2380,infra2=http://10.0.1.12:2380"
 initial-cluster:
 
+# 引导期间 etcd 集群的初始集群令牌。
 # Initial cluster token for the etcd cluster during bootstrap.
 initial-cluster-token: 'etcd-cluster'
 
+# 初始化集群状态
+# 集群扩容，节点故障恢复，数据迁移等情况使用 existing
 # Initial cluster state ('new' or 'existing').
 initial-cluster-state: 'new'
 
@@ -126,9 +141,11 @@ peer-transport-security:
   # Allowed CN for inter peer authentication.
   allowed-cn:
 
+  # 允许 TLS 主机名进行对等身份验证。
   # Allowed TLS hostname for inter peer authentication.
   allowed-hostname:
 
+# 自签名证书的有效期，单位为年。
 # The validity period of the self-signed certificate, the unit is year.
 self-signed-cert-validity: 1
 
@@ -140,9 +157,12 @@ logger: zap
 # Specify 'stdout' or 'stderr' to skip journald logging even when running under systemd.
 log-outputs: [stderr]
 
+# 强制创建一个新的单Member集群
 # Force to create a new one member cluster.
 force-new-cluster: false
 
+# periodic 基于时间的压缩，auto-compaction-retention 为自动压缩的时间
+# revision 基于修订号的压缩 auto-compaction-retention=10000 保留10000个修订号
 auto-compaction-mode: periodic
 auto-compaction-retention: "1"
 

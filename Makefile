@@ -207,7 +207,10 @@ clean:
 	rm -f ./codecov
 	rm -rf ./covdir
 	rm -f ./bin/Dockerfile-release
-	rm -rf ./bin/etcd*
+	rm -rf ./bin/etcd
+	rm -rf ./bin/etcdutl
+	rm -rf ./bin/etcdctl
+	rm -rf ./bin/**/data
 	rm -rf ./bin/lazyfs
 	rm -rf ./bin/python
 	rm -rf ./default.etcd
