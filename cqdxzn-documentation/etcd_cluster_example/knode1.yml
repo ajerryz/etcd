@@ -1,0 +1,37 @@
+name: "etcdserver-knode1"
+data-dir: "data"
+snapshot-count: 100
+heartbeat-interval: 3000
+election-timeout: 15000
+quota-backend-bytes: 0
+listen-peer-urls: http://192.168.10.211:2380
+listen-client-urls: "http://192.168.10.211:2379,http://localhost:2379"
+
+max-snapshots: 5
+max-wals: 5
+cors:
+initial-advertise-peer-urls: http://192.168.10.211:2380
+advertise-client-urls: http://192.168.10.211:2379
+
+discovery:
+discovery-fallback: 'proxy'
+discovery-srv:
+initial-cluster: "etcdserver-knode1=http://192.168.10.211:2380,etcdserver-knode2=http://192.168.10.212:2380,etcdserver-knode3=http://192.168.10.213:2380"
+initial-cluster-token: 'etcd-cluster'
+initial-cluster-state: 'new'
+
+strict-reconfig-check: false
+enable-pprof: true
+proxy: 'off'
+proxy-failure-wait: 5000
+proxy-refresh-interval: 30000
+proxy-dial-timeout: 1000
+proxy-write-timeout: 5000
+proxy-read-timeout: 0
+self-signed-cert-validity: 1
+log-level: info
+logger: zap
+log-outputs: [stderr]
+force-new-cluster: false
+auto-compaction-mode: periodic
+auto-compaction-retention: "1"
