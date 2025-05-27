@@ -4,7 +4,10 @@
 /gopath
 /gopath.proto
 /release
-/bin
+/bin/etcd
+/bin/etcdctl
+/bin/etcdutl
+/bin/**/data
 *.etcd
 *.log
 *.swp
