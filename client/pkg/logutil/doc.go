@@ -13,4 +13,5 @@
 // limitations under the License.
 
 // Package logutil includes utilities to facilitate logging.
+// logutil 软件包包含用于方便日志记录的实用程序。
 package logutil

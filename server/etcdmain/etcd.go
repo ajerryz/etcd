@@ -44,7 +44,7 @@ var (
 func startEtcdOrProxyV2(args []string) {
 	grpc.EnableTracing = false
 
-	cfg := newConfig()
+	cfg := newConfig() // 创建配置
 	defaultInitialCluster := cfg.ec.InitialCluster
 
 	err := cfg.parse(args[1:])
@@ -203,6 +203,7 @@ func startEtcdOrProxyV2(args []string) {
 }
 
 // startEtcd runs StartEtcd in addition to hooks needed for standalone etcd.
+// 启动 etcd
 func startEtcd(cfg *embed.Config) (<-chan struct{}, <-chan error, error) {
 	e, err := embed.StartEtcd(cfg)
 	if err != nil {
@@ -255,8 +256,9 @@ func identifyDataDirOrDie(lg *zap.Logger, dir string) dirType {
 	return dirEmpty
 }
 
+// checkSupportArch 检查支持的机器架构
 func checkSupportArch() {
-	lg, err := logutil.CreateDefaultZapLogger(zap.InfoLevel)
+	lg, err := logutil.CreateDefaultZapLogger(zap.InfoLevel) // 使用etcd中针对zap的默认配置创建一个zap.Logger
 	if err != nil {
 		panic(err)
 	}

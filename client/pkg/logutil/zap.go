@@ -23,6 +23,7 @@ import (
 )
 
 // CreateDefaultZapLogger creates a logger with default zap configuration
+// 使用默认zap配置创建一个zap.Logger日志器
 func CreateDefaultZapLogger(level zapcore.Level) (*zap.Logger, error) {
 	lcfg := DefaultZapLoggerConfig
 	lcfg.Level = zap.NewAtomicLevelAt(level)
@@ -34,6 +35,7 @@ func CreateDefaultZapLogger(level zapcore.Level) (*zap.Logger, error) {
 }
 
 // DefaultZapLoggerConfig defines default zap logger configuration.
+// 默认的zap.Config 实例变量
 var DefaultZapLoggerConfig = zap.Config{
 	Level: zap.NewAtomicLevelAt(ConvertToZapLevel(DefaultLogLevel)),
 

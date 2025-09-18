@@ -38,6 +38,7 @@ var (
 	gatewayCA                    string
 )
 
+// rootCmd etcd根命令
 var rootCmd = &cobra.Command{
 	Use:        "etcd",
 	Short:      "etcd server",
@@ -45,6 +46,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	// 根添加 gateway 命令: etcd gateway <subcommand>
 	rootCmd.AddCommand(newGatewayCommand())
 }
 

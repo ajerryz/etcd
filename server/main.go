@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main is a simple wrapper of the real etcd entrypoint package
-// (located at go.etcd.io/etcd/etcdmain) to ensure that etcd is still
-// "go getable"; e.g. `go get go.etcd.io/etcd` works as expected and
-// builds a binary in $GOBIN/etcd
+// main 包是 etcd 真正的入口点包（位于 go.etcd.io/etcd/etcdmain）的简单包装器，用于确保 etcd 仍然
+// “可以通过 go get 获取”；例如，`go get go.etcd.io/etcd` 可以按预期工作，并且在 $GOBIN/etcd 中构建一个二进制文件
 //
-// This package should NOT be extended or modified in any way; to modify the
-// etcd binary, work in the `go.etcd.io/etcd/etcdmain` package.
+// 该包不应以任何方式扩展或修改；要修改 etcd 二进制文件，请在 `go.etcd.io/etcd/etcdmain` 包中工作。
 package main
 
 import (

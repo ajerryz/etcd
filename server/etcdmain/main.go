@@ -22,6 +22,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Main etcd server 入口点
 func Main(args []string) {
 	checkSupportArch()
 
@@ -29,6 +30,7 @@ func Main(args []string) {
 		cmd := args[1]
 		switch cmd {
 		case "gateway", "grpc-proxy":
+			// 当是 gateway 或者 grpc-proxy 从cobra的命令启动
 			if err := rootCmd.Execute(); err != nil {
 				fmt.Fprint(os.Stderr, err)
 				os.Exit(1)
@@ -36,7 +38,7 @@ func Main(args []string) {
 			return
 		}
 	}
-
+	// 启动 etcd 或者 proxy v2
 	startEtcdOrProxyV2(args)
 }
 
