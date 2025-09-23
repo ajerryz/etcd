@@ -74,6 +74,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&globalFlags.TLS.ServerName, "discovery-srv", "d", "", "domain name to query for SRV records describing cluster endpoints")
 	rootCmd.PersistentFlags().StringVarP(&globalFlags.DNSClusterServiceName, "discovery-srv-name", "", "", "service name to query when using DNS discovery")
 
+	// rootCmd 的子命令
 	rootCmd.AddCommand(
 		command.NewGetCommand(),
 		command.NewPutCommand(),
@@ -112,6 +113,7 @@ func Start() error {
 	return rootCmd.Execute()
 }
 
+// MustStart etcdctl 的入口
 func MustStart() {
 	if err := Start(); err != nil {
 		if rootCmd.SilenceErrors {

@@ -46,17 +46,18 @@ var (
 )
 
 // Client provides and manages an etcd v3 client session.
+// Client 提供并管理 etcd v3 客户端会话。
 type Client struct {
-	Cluster
-	KV
-	Lease
-	Watcher
-	Auth
-	Maintenance
+	Cluster     // Cluster接口
+	KV          // KV 接口
+	Lease       // Lease 接口
+	Watcher     // Watcher 接口
+	Auth        // Auth 接口
+	Maintenance // Maintenance 接口
 
-	conn *grpc.ClientConn
+	conn *grpc.ClientConn // grpc 中的ClientConn
 
-	cfg      Config
+	cfg      Config // 配置，包含Endpoint,超时等配置
 	creds    grpccredentials.TransportCredentials
 	resolver *resolver.EtcdManualResolver
 
@@ -79,11 +80,12 @@ type Client struct {
 }
 
 // New creates a new etcdv3 client from a given configuration.
+// New 从传入的配置 Config 创建一个etcdv3 客户端
 func New(cfg Config) (*Client, error) {
 	if len(cfg.Endpoints) == 0 {
 		return nil, ErrNoAvailableEndpoints
 	}
-
+	// newClient 实际创建逻辑函数
 	return newClient(&cfg)
 }
 
