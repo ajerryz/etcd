@@ -1,0 +1,97 @@
+# 基础标识与存储配置
+name: 'local-etcd'      # 当前 etcd 实例的名称，用于集群中标识节点(集群模式下需要唯一)
+data: 'data'            # 数据目录路径，存储 etcd 的快照(snapshot) 和元数据，默认在当前目录下的 data文件夹
+wal-dir:                # WAL(Write-Ahead Log,预写日志)目录(此处未配置，默认与data目录共用)，用于保障数据一致性
+snapshot-count: 10000   # 生成快照的阈值，当WAL日志条数达到指定数量时，自动生成数据快照，优化存储和恢复效率
+max-wals: 5             # 保留的最大WAL 日志文件数量，超过则自动清理旧日志
+max-snapshots: 5        # 保留的最大快照文件数量，超过则自动删除旧快照，避免磁盘占满
+
+# 网络通信配置
+# 为什么有了 listen-client-urls 还需要 advertise-client-urls?
+#   场景1:正常物理机运行(listen-client-urls和advertise-client-urls相同),客户端直接访问该ip
+#   场景2:容器中运行(两者不同)容器内部地址客户端访问不到因此advertise-client-urls需要是客户端能访问的地址
+#   场景3:前面有反向代理(Nginx/HAProxy)
+listen-peer-urls: http://localhost:2380     # 节点间(Peer)通信的监听地址，默认端口2380,仅支持单节点（集群需改为节点IP）
+listen-client-urls: http://localhost:2379   # 客户端(如k8s API Server)连接的监听地址，默认端口2379.该参数为etcd在本机上监听的URL，决定etcd进程真正绑定哪个网卡
+initial-advertise-peer-urls: http://localhost:2380  # 向集群其他节点“宣告”自己的Peer通信地址，需与listen-peer-urls对应
+# 向客户端“宣告”自己的访问地址，需与 listen-client-urls对应
+# etcd在返回 cluster 信息(如/v2/members,leader信息)时，会把这个URL返回给客户端，客户端根据返回内容去访问member
+advertise-client-urls: http://localhost:2379
+
+
+
+# 性能与稳定性
+heartbeat-interval: 200         # 节点间心跳间隔(单位:ms),用于检测节点存活
+election-timeout: 1000          # leader 选举超时时间(单位:ms),若超过配置时间未收到leader心跳，触发重新选举
+quota-backend-bytes: 0          # etcd 后端存储的容量限制(单位:字节)，0表示无限制
+auto-compaction-mode: periodic  # 数据自动压缩模式. periodic 表示按周期压缩 auto 表示自动
+auto-compaction-retention: "1"  # 数据压缩保留时间，保留最近的多长时间数据。1表示1个小时,更早的数据会被释放
+
+# 日志与调试
+log-level: info         # 日志级别,info warn error debug
+logger: zap             # 日志框架，zap 表示使用zap日志框架
+log-outputs: [ stderr ] # 日志输出位置,stderr 表示标准错误流。可追加文件路径 [ stderr,/var/log/etcd.log ]
+log-pprof: true         # 启用 pprof 调试接口，可通过 http://ip:2379/debug/pprof 分析etcd性能
+#enable-pprof: true
+
+# 集群初始化与发现
+initial-cluster:                        # 集群初始化节点列表（如：node1=http://ip1:2380,node2=http://ip2:2380 ）
+initial-cluster-token: 'etcd-cluster'   # 集群的唯一令牌，用于区分不同集群，避免节点加入其他集群
+initial-cluster-state: 'new'            # 集群初始状态：new 表示创建新集群，existing 表示加入集群
+discovery:                              # 集群发现地址：如etcd官方发现服务 https://discovery.etcd.io/xxx (不配置不使用自动发现)
+
+
+# 集群重置配置
+force-new-cluster: false  # 强制创建新集群，若节点数据损坏，可设为true重置集群(会清空数据)
+strict-reconfig-check: false  # 集群重配置（如添加 / 移除节点）时的严格校验开关。false 表示关闭严格校验，允许一些非严格符合规范的重配置操作（如节点名称重复）；true 则会严格检查并拒绝不符合规范的操作，提高集群稳定性。
+
+
+
+
+# 安全加密
+client-transport-security:  # 客户端通信安全配置
+  cert-file:                        # 客户端认证的证书
+  key-file:                         # 密钥文件
+  client-cert-auth: false           # 是否开启客户端证书认证
+  trusted-ca-file:                  #
+  auto-tls: false                   # 是否开启 客户端通信自动TLS
+peer-transport-security:    # 节点间通信安全配置,子项与客户端通信安全配置相同
+  cert-file:
+  key-file:
+  client-cert-auth: false
+  trusted-ca-file:
+  auto-tls: false
+  allowed-cn:
+  allowed-hostname:
+cipher-suites: [          # 启用TLS加密套件，指定通信时使用的加密算法(如：下面的)
+  TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+  TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+]
+tls-min-version: 'TLS1.2' # 允许TLS协议版本最小最大范围
+tls-max-version: 'TLS1.3'
+self-signed-cert-validity: 1  # 字签名证书有效期,当启用自动TLS加密(auto-tls:true)时，etcd自动生成自签名证书的有效期(单位：小时)生产环境建议使用自定义证书（通过 cert-file 和 key-file 配置），而非自签名证书。
+
+
+
+# 其他辅助配置
+cors:                     # 跨域资源共享配置，未配置不允许跨域请求
+
+
+# 代理模式相关参数
+proxy: 'off'                  # 代理模式，off 不启用代理。on 启用代理（转发请求到集群节点）
+discovery-fallback: 'proxy'   # 当集群发现（通过 discovery 配置的地址）失败时的降级策略。proxy 表示发现失败后，节点将以 代理模式 运行，而非作为集群成员，转发请求到已知的集群节点。
+discovery-proxy:              # 集群发现过程中使用的 HTTP 代理地址（如 http://proxy.example.com:8080）。当前未配置，即不使用代理进行集群发现。
+discovery-srv:                # 指定用于集群发现的 DNS SRV 记录的域名（如 example.com）。etcd 会通过查询该域名的 SRV 记录获取集群节点信息。当前未配置，即不使用 DNS SRV 进行发现。
+proxy-failure-wait: 5000      # 当代理转发请求到集群节点失败后，等待多久（毫秒）再重试连接该节点，默认 5000ms（5 秒）。
+proxy-refresh-interval: 30000 # 代理定期刷新集群节点列表的间隔（毫秒），默认 30000ms（30 秒），确保代理知晓最新的集群成员。
+proxy-dial-timeout: 1000      # 代理与后端集群节点建立连接的超时时间（毫秒），默认 1000ms（1 秒），超时则视为连接失败。
+proxy-write-timeout: 5000     # 代理向后端集群节点发送请求（写操作）的超时时间（毫秒），默认 5000ms（5 秒）。
+proxy-read-timeout: 0         # 代理从后端集群节点读取响应（读操作）的超时时间（毫秒），0 表示无超时限制（默认）。
+
+
+
+
+
+
+
+
