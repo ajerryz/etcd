@@ -1,0 +1,14 @@
+<configuration>
+
+
+    <appender name="CONSOLE_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-mm-dd HH:mm:ss.SSS} [%-5level] %-6t - %logger{36} :%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE_APPENDER"/>
+    </root>
+
+</configuration>
