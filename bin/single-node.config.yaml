@@ -1,0 +1,18 @@
+name: 'single-node-etcd'      # 当前 etcd 实例的名称，用于集群中标识节点(集群模式下需要唯一)
+data: 'single-node-etcd-data'            # 数据目录路径，存储 etcd 的快照(snapshot) 和元数据，默认在当前目录下的 data文件夹
+wal-dir:                # WAL(Write-Ahead Log,预写日志)目录(此处未配置，默认与data目录共用)，用于保障数据一致性
+snapshot-count: 10000   # 生成快照的阈值，当WAL日志条数达到指定数量时，自动生成数据快照，优化存储和恢复效率
+max-wals: 5             # 保留的最大WAL 日志文件数量，超过则自动清理旧日志
+max-snapshots: 5        # 保留的最大快照文件数量，超过则自动删除旧快照，避免磁盘占满
+
+
+listen-peer-urls: http://localhost:2380     # 节点间(Peer)通信的监听地址，默认端口2380,仅支持单节点（集群需改为节点IP）
+listen-client-urls: http://localhost:2379   # 客户端(如k8s API Server)连接的监听地址，默认端口2379.该参数为etcd在本机上监听的URL，决定etcd进程真正绑定哪个网卡
+initial-advertise-peer-urls: http://localhost:2380  # 向集群其他节点“宣告”自己的Peer通信地址，需与listen-peer-urls对应
+advertise-client-urls: http://localhost:2379
+
+# 日志与调试
+log-level: info         # 日志级别,info warn error debug
+logger: zap             # 日志框架，zap 表示使用zap日志框架
+log-outputs: [ stderr ] # 日志输出位置,stderr 表示标准错误流。可追加文件路径 [ stderr,/var/log/etcd.log ]
+log-pprof: true         # 启用 pprof 调试接口，可通过 http://ip:2379/debug/pprof 分析etcd性能
