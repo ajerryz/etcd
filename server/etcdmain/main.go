@@ -38,7 +38,7 @@ func Main(args []string) {
 			return
 		}
 	}
-	// 启动 etcd 或者 proxy v2
+	// 启动 etcd 或者 proxy v2(已废弃)
 	startEtcdOrProxyV2(args)
 }
 

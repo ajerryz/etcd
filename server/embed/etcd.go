@@ -67,34 +67,67 @@ const (
 )
 
 // Etcd contains a running etcd server and its listeners.
+// Etcd 包含了运行的etcd server 和 其监听
 type Etcd struct {
-	Peers   []*peerListener
+	// etcd 集群节点间通信监听器列表
+	//存储所有节点间通信的监听器（默认端口 2380），peerListener 是 etcd 封装的专用节点间通信监听器，区别于客户端监听。
+	Peers []*peerListener
+	// 客户端请求通信监听器列表
+	// 监听外部客户端（etcdctl、业务应用、K8s 等）的连接请求，处理客户端的 KV 读写、租约、事务等操作（默认端口 2379）。
+	//是标准 Go 网络监听器，负责接收所有外部用户 / 业务的请求。
 	Clients []net.Listener
 	// a map of contexts for the servers that serves client requests.
-	sctxs            map[string]*serveCtx
+	// 客户端请求服务上下文映射表
+	// Key：客户端监听的地址（如 127.0.0.1:2379）
+	// Value：serveCtx（服务上下文），管理对应监听器的协程、连接、请求处理、生命周期
+	//        每个客户端监听器对应一个上下文，用于跟踪客户端请求处理的运行状态。
+	sctxs map[string]*serveCtx
+
+	// 监控指标暴露监听器列表
+	// 独立的监听器，专门用于暴露 etcd 的监控指标（如请求量、存储大小、Raft 状态、连接数），供 Prometheus 等监控系统采集。
+	// 与业务通信分离，保证监控不影响核心服务。
 	metricsListeners []net.Listener
 
+	// 分布式追踪导出器的关闭函数
+	// etcd 集成分布式追踪（OpenTelemetry/Jaeger）时，这个函数用于优雅关闭追踪上报组件，释放资源、停止发送追踪数据。
 	tracingExporterShutdown func()
 
+	// etcd 核心服务实例（最核心字段）
+	// etcd 的「大脑」，封装了所有核心能力：
+	//					Raft 分布式一致性协议
+	//					本地存储引擎（BoltDB）
+	//					KV 读写、事务、租约、告警
+	//					集群管理、节点选举、数据同步 所有业务逻辑都由这个对象实现。
+	//
 	Server *etcdserver.EtcdServer
 
+	// etcd 全量配置实例 存储 etcd 启动和运行的所有配置
 	cfg Config
 
 	// closeOnce is to ensure `stopc` is closed only once, no matter
 	// how many times the Close() method is called.
+	// 保证关闭逻辑只执行一次
 	closeOnce sync.Once
 	// stopc is used to notify the sub goroutines not to send
 	// any errors to `errc`.
+	// 全局停止信号通道
+	// 关闭时，向这个通道发送信号，通知所有子协程（客户端处理、节点通信、监控）立即停止工作，不再向错误通道发送数据。
+	// 是 etcd 优雅关闭的「总开关信号」。
 	stopc chan struct{}
 	// errc is used to receive error from sub goroutines (including
 	// client handler, peer handler and metrics handler). It's closed
 	// after all these sub goroutines exit (checked via `wg`). Writers
 	// should avoid writing after `stopc` is closed by selecting on
 	// reading from `stopc`.
+	// 子协程错误接收通道
+	// 所有子协程（客户端处理器、节点间处理器、监控处理器）运行时的异常错误，都会发送到这个通道。
+	//主协程监听该通道，捕获服务运行时错误，做异常处理 / 重启。
 	errc chan error
 
 	// wg is used to track the lifecycle of all sub goroutines which
 	// need to send error back to the `errc`.
+	// 子协程生命周期等待组
+	// 跟踪所有子协程的退出状态：
 	wg sync.WaitGroup
 }
 
