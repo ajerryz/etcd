@@ -7,10 +7,21 @@ max-wals: 5             # 保留的最大WAL 日志文件数量，超过则自�
 max-snapshots: 5        # 保留的最大快照文件数量，超过则自动删除旧快照，避免磁盘占满
 
 # 网络通信配置
+# 为什么有了 listen-client-urls 还需要 advertise-client-urls?
+#   场景1:正常物理机运行(listen-client-urls和advertise-client-urls相同),客户端直接访问该ip
+#   场景2:容器中运行(两者不同)容器内部地址客户端访问不到因此advertise-client-urls需要是客户端能访问的地址
+#   场景3:前面有反向代理(Nginx/HAProxy)
 listen-peer-urls: http://localhost:2380     # 节点间(Peer)通信的监听地址，默认端口2380,仅支持单节点（集群需改为节点IP）
-listen-client-urls: http://localhost:2379   # 客户端(如k8s API Server)连接的监听地址，默认端口2379
+listen-client-urls: http://localhost:2379   # 客户端(如k8s API Server)连接的监听地址，默认端口2379.该参数为etcd在本机上监听的URL，决定etcd进程真正绑定哪个网卡
 initial-advertise-peer-urls: http://localhost:2380  # 向集群其他节点“宣告”自己的Peer通信地址，需与listen-peer-urls对应
-advertise-client-urls: http://localhost:2379        # 向客户端“宣告”自己的访问地址，需与 listen-client-urls对应
+# 向客户端“宣告”自己的访问地址，需与 listen-client-urls对应
+# etcd在返回 cluster 信息(如/v2/members,leader信息)时，会把这个URL返回给客户端，客户端根据返回内容去访问member
+advertise-client-urls: http://localhost:2379
+
+
+# Prometheus metrics
+metrics: basic
+listen-metrics-urls: http://localhost:2381
 
 
 # 性能与稳定性

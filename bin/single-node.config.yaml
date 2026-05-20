@@ -1,5 +1,5 @@
-name: 'single-node-etcd'      # 当前 etcd 实例的名称，用于集群中标识节点(集群模式下需要唯一)
-data: 'single-node-etcd-data'            # 数据目录路径，存储 etcd 的快照(snapshot) 和元数据，默认在当前目录下的 data文件夹
+name: 'single'      # 当前 etcd 实例的名称，用于集群中标识节点(集群模式下需要唯一)
+data: 'single-data'            # 数据目录路径，存储 etcd 的快照(snapshot) 和元数据，默认在当前目录下的 data文件夹
 wal-dir:                # WAL(Write-Ahead Log,预写日志)目录(此处未配置，默认与data目录共用)，用于保障数据一致性
 snapshot-count: 10000   # 生成快照的阈值，当WAL日志条数达到指定数量时，自动生成数据快照，优化存储和恢复效率
 max-wals: 5             # 保留的最大WAL 日志文件数量，超过则自动清理旧日志
@@ -10,6 +10,10 @@ listen-peer-urls: http://localhost:2380     # 节点间(Peer)通信的监听地�
 listen-client-urls: http://localhost:2379   # 客户端(如k8s API Server)连接的监听地址，默认端口2379.该参数为etcd在本机上监听的URL，决定etcd进程真正绑定哪个网卡
 initial-advertise-peer-urls: http://localhost:2380  # 向集群其他节点“宣告”自己的Peer通信地址，需与listen-peer-urls对应
 advertise-client-urls: http://localhost:2379
+
+# Prometheus metrics
+metrics: basic
+listen-metrics-urls: http://localhost:2381
 
 # 日志与调试
 log-level: info         # 日志级别,info warn error debug
